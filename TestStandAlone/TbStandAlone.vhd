@@ -50,6 +50,10 @@ library osvvm_ethernet ;
     context osvvm_ethernet.xMiiContext ;
     
 entity TbStandAlone is
+  generic (
+    MII_INTERFACE : xMiiInterfaceType := GMII ;
+    MII_BPS       : xMiiBpsType       := BPS_1G 
+  ) ;
 end entity TbStandAlone ; 
 architecture TestHarness of TbStandAlone is
 
@@ -93,6 +97,8 @@ begin
  
   xMiiPhy_1 : xMiiPhy 
     generic map (
+      MII_INTERFACE  => MII_INTERFACE,
+      MII_BPS        => MII_BPS, 
       DEFAULT_DELAY  => tpd
     ) 
     port map (
@@ -120,7 +126,9 @@ begin
 
   xMiiMac_1 : xMiiMac 
     generic map (
-      DEFAULT_DELAY  => 1 ns
+      MII_INTERFACE  => MII_INTERFACE,
+      MII_BPS        => MII_BPS, 
+      DEFAULT_DELAY  => tpd
     ) 
     port map (
       -- xMii Transmitter Functional Interface

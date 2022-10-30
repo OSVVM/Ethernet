@@ -154,6 +154,8 @@ package xMiiComponentPkg is
   component xMiiPhy is
     generic (
       MODEL_ID_NAME  : string := "" ;
+      MII_INTERFACE  : xMiiInterfaceType := GMII ;
+      MII_BPS        : xMiiBpsType       := BPS_1G ;
       DEFAULT_DELAY  : time := 1 ns ;
       tpd            : time := DEFAULT_DELAY 
     ) ;
@@ -184,6 +186,8 @@ package xMiiComponentPkg is
   component xMiiMac is
     generic (
       MODEL_ID_NAME  : string := "" ;
+      MII_INTERFACE  : xMiiInterfaceType := GMII ;
+      MII_BPS        : xMiiBpsType       := BPS_1G ;
       DEFAULT_DELAY  : time := 1 ns ;
       tpd            : time := DEFAULT_DELAY 
     ) ;

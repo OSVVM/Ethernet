@@ -190,16 +190,16 @@ package body xMiiTbPkg is
         wait until Rising_Edge(Clk) ; 
       
       when RMII =>
-        oData   <= iData(0 to 1) & "XXXXXX" ; 
-        oEnDv   <= iEnDv ; 
-        oEr     <= Error ; 
-        oCtl    <= iEnDv ; -- 'X' ; 
+        oData   <= iData(0 to 1) & "XXXXXX" after Tpd ; 
+        oEnDv   <= iEnDv after Tpd ; 
+        oEr     <= Error after Tpd ; 
+        oCtl    <= iEnDv after Tpd ; -- 'X' ; 
         wait until Rising_Edge(Clk) ; 
-        oData   <= iData(2 to 3) & "XXXXXX" ; 
+        oData   <= iData(2 to 3) & "XXXXXX" after Tpd ; 
         wait until Rising_Edge(Clk) ; 
-        oData   <= iData(4 to 5) & "XXXXXX" ; 
+        oData   <= iData(4 to 5) & "XXXXXX" after Tpd ; 
         wait until Rising_Edge(Clk) ; 
-        oData   <= iData(6 to 7) & "XXXXXX" ; 
+        oData   <= iData(6 to 7) & "XXXXXX" after Tpd ; 
         wait until Rising_Edge(Clk) ; 
     end case ; 
   end procedure SendByte ; 
@@ -238,6 +238,8 @@ package body xMiiTbPkg is
         
       when MII =>
         oData(0 to 3) := iData(0 to 3) ; 
+        oEnDv := iEnDv ; 
+        oEr   := iEr ; 
         wait until Rising_Edge(Clk) ; 
         
         oData(4 to 7) := iData(0 to 3) ; 

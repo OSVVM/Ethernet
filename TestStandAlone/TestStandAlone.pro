@@ -45,3 +45,9 @@ analyze TestCtrl_e.vhd
 analyze TbStandAlone.vhd
 
 RunTest Tb_xMii1.vhd
+
+simulate Tb_xMii1 [generic MII_INTERFACE RGMII] [generic MII_BPS BPS_1G]
+simulate Tb_xMii1 [generic MII_INTERFACE MII]   [generic MII_BPS BPS_100M]
+simulate Tb_xMii1 [generic MII_INTERFACE MII]   [generic MII_BPS BPS_10M]
+simulate Tb_xMii1 [generic MII_INTERFACE RMII]  [generic MII_BPS BPS_100M]
+simulate Tb_xMii1 [generic MII_INTERFACE RMII]  [generic MII_BPS BPS_10M]

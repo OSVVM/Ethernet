@@ -60,6 +60,8 @@ library osvvm_common ;
 entity xMiiPhy is
   generic (
     MODEL_ID_NAME  : string := "" ;
+    MII_INTERFACE  : xMiiInterfaceType := GMII ;
+    MII_BPS        : xMiiBpsType       := BPS_1G ;
     DEFAULT_DELAY  : time := 1 ns ;
     tpd            : time := DEFAULT_DELAY 
   ) ;
@@ -96,8 +98,8 @@ end entity xMiiPhy ;
 architecture behavioral of xMiiPhy is
 
   -- MDIO settings
-  signal xMiiInterface : xMiiInterfaceType := GMII ;
-  signal xMiiBps       : xMiiBpsType       := BPS_1G ;
+  signal xMiiInterface : xMiiInterfaceType := MII_INTERFACE ;
+  signal xMiiBps       : xMiiBpsType       := MII_BPS ;
 
 begin
 
