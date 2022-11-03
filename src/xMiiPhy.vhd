@@ -113,7 +113,8 @@ begin
   xMiiPhyRxTransmitter_1 : xMiiPhyRxTransmitter 
     generic map (
       MODEL_ID_NAME  => MODEL_INSTANCE_NAME & ".Rx",
-      DEFAULT_DELAY  => DEFAULT_DELAY
+      DEFAULT_DELAY  => DEFAULT_DELAY,
+      Tpd            => Tpd
     ) 
     port map (
       -- Configured by MDIO - it can change during operation based on PHY negotiation
@@ -136,7 +137,8 @@ begin
   xMiiPhyTxReceiver_1 : xMiiPhyTxReceiver 
     generic map (
       MODEL_ID_NAME  => MODEL_INSTANCE_NAME & ".Tx",
-      DEFAULT_DELAY  => DEFAULT_DELAY
+      DEFAULT_DELAY  => DEFAULT_DELAY,
+      Tpd            => Tpd
     ) 
     port map (
       -- Configured by MDIO - it can change during operation based on PHY negotiation

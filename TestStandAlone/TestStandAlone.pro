@@ -37,6 +37,7 @@
 #  limitations under the License.
 #  
 
+TestSuite Ethernet
 library Ethernet_TestStandAlone
 
 analyze OsvvmTestCommonPkg.vhd

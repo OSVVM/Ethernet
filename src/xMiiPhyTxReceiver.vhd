@@ -89,10 +89,15 @@ entity xMiiPhyTxReceiver is
 end entity xMiiPhyTxReceiver ;
 architecture behavioral of xMiiPhyTxReceiver is
 
-  constant tperiod_xClk   : time := CalcPeriod(xMiiBps, xMiiInterface) ; 
-  signal RefTxClk, iTxClk : std_logic ; 
-    
-  signal ModelID       : AlertLogIDType ;
+  signal tperiod_xClk : time := CalcPeriod(BPS_1G, GMII) ; 
+  signal RefTxClk     : std_logic := '0' ; 
+  signal iTxClk       : std_logic := '0' ; 
+  signal iTxD         : std_logic_vector(0 to 7) ; 
+  signal iTx_En       : std_logic ; 
+  signal iTx_Er       : std_logic ; 
+  signal iTx_Ctl      : std_logic ; 
+
+  signal ModelID      : AlertLogIDType ;
 
   signal DataFifo  : osvvm.ScoreboardPkg_slv.ScoreboardIDType ;
   signal MetaFifo  : osvvm.ScoreboardPkg_int.ScoreboardIDType ;
@@ -117,19 +122,32 @@ begin
 
 
   ------------------------------------------------------------
-  Osvvm.TbUtilPkg.CreateClock ( 
+  ClkProc : process
   ------------------------------------------------------------
-    Clk        => RefTxClk, 
-    Period     => tperiod_xClk 
-  )  ; 
+  begin
+    wait for 0 ns ;  -- calc init value on tperiod_xClk
+    loop 
+      RefTxClk <= not RefTxClk after tperiod_xClk ; 
+      wait on RefTxClk ; 
+    end loop ; 
+  end process ; 
+
+  tperiod_xClk <= CalcPeriod(xMiiBps, xMiiInterface) ; 
   
+  Tx_Clk <= RefTxClk ;
+
   -- Internal timing reference - caution:  shifted by delta cycle
   iTxClk <= GTx_Clk when xMiiInterface = GMII or xMiiInterface = RGMII 
             else RefTxClk when xMiiInterface = MII else
 --!!TODO resolve source of RMII Clk
             RefTxClk ; -- Source of RMII
 
-  Tx_Clk <= RefTxClk ;
+  -- Since iTxClk is delayed, all input signals must be delayed 
+  -- or RTL signals may not be sampled correctly.
+  iTxD     <= TxD   ;
+  iTx_En   <= Tx_En ;
+  iTx_Er   <= Tx_Er ;
+  iTx_Ctl  <= Tx_Ctl;
 
 
   ------------------------------------------------------------
@@ -236,10 +254,10 @@ begin
         oEr           => oEr,
         Tpd           => Tpd,
         xMiiInterface => xMiiInterface,
-        iData         => TxD,  
-        iEnDv         => Tx_En,
-        iEr           => Tx_Er,
-        iCtl          => Tx_Ctl
+        iData         => iTxD,  
+        iEnDv         => iTx_En,
+        iEr           => iTx_Er,
+        iCtl          => iTx_Ctl
       ) ;
     end procedure GetByte ;
   begin

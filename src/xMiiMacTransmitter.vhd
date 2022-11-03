@@ -89,18 +89,19 @@ entity xMiiMacTransmitter is
 end entity xMiiMacTransmitter ;
 architecture behavioral of xMiiMacTransmitter is
 
-  constant tperiod_xClk : time := CalcPeriod(xMiiBps, xMiiInterface) ; 
-  signal iTxClk, RefGtxClk : std_logic ; 
+  signal tperiod_xClk : time := CalcPeriod(BPS_1G, GMII) ; 
+  signal RefGtxClk    : std_logic := '0' ; 
+  signal iTxClk       : std_logic := '0' ; 
     
-  signal ModelID       : AlertLogIDType ;
+  signal ModelID      : AlertLogIDType ;
 
-  signal DataFifo : osvvm.ScoreboardPkg_slv.ScoreboardIDType ;
-  signal MetaFifo : osvvm.ScoreboardPkg_int.ScoreboardIDType ;
+  signal DataFifo     : osvvm.ScoreboardPkg_slv.ScoreboardIDType ;
+  signal MetaFifo     : osvvm.ScoreboardPkg_int.ScoreboardIDType ;
 
   signal TransmitRequestCount, TransmitDoneCount      : integer := 0 ;
 
 --!! TODO - NumGapLength should be a function of frequency
-  signal NumGapLength   : integer := 7 ;
+  signal NumGapLength : integer := 7 ;
 
 begin
 
@@ -119,11 +120,17 @@ begin
   end process Initialize ;
 
   ------------------------------------------------------------
-  Osvvm.TbUtilPkg.CreateClock ( 
+  ClkProc : process
   ------------------------------------------------------------
-    Clk        => RefGtxClk, 
-    Period     => tperiod_xClk 
-  )  ; 
+  begin
+    wait for 0 ns ;  -- calc init value on tperiod_xClk
+    loop 
+      RefGtxClk <= not RefGtxClk after tperiod_xClk ; 
+      wait on RefGtxClk ; 
+    end loop ; 
+  end process ; 
+
+  tperiod_xClk <= CalcPeriod(xMiiBps, xMiiInterface) ; 
   
   -- Internal timing reference - caution:  shifted by delta cycle
   iTxClk <= RefGtxClk when xMiiInterface = GMII or xMiiInterface = RGMII 

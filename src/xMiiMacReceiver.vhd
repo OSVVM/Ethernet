@@ -69,16 +69,16 @@ entity xMiiMacReceiver is
     xMiiBps       : in xMiiBpsType       := BPS_1G ;
     
     -- xMiiMacTransmitter Receiver Interface
-    Rx_Clk    : in std_logic ; 
-    RxD       : in std_logic_vector(0 to 7) ; 
-    Rx_Dv     : in std_logic ; 
-    Rx_Er     : in std_logic ; 
-    Rx_Ctl    : in  std_logic ; 
-    Crs       : in std_logic ; 
-    Col       : in std_logic ; 
+    Rx_Clk        : in std_logic ; 
+    RxD           : in std_logic_vector(0 to 7) ; 
+    Rx_Dv         : in std_logic ; 
+    Rx_Er         : in std_logic ; 
+    Rx_Ctl        : in std_logic ; 
+    Crs           : in std_logic ; 
+    Col           : in std_logic ; 
 
     -- Testbench Transaction Interface
-    TransRec  : inout StreamRecType    -- Information inbound to this VC
+    TransRec      : inout StreamRecType    -- Information inbound to this VC
   ) ;
 
   -- Use MODEL_ID_NAME Generic if set, otherwise,
@@ -90,13 +90,19 @@ entity xMiiMacReceiver is
 end entity xMiiMacReceiver ;
 architecture behavioral of xMiiMacReceiver is
 
-  constant tperiod_xClk : time := CalcPeriod(xMiiBps, xMiiInterface) ;
-  signal iRxClk : std_logic ;   
+--  signal tperiod_xClk : time := CalcPeriod(BPS_1G, GMII) ; 
+  signal iRxClk   : std_logic ;   
+  signal iRxD     : std_logic_vector(0 to 7) ; 
+  signal iRx_Dv   : std_logic ; 
+  signal iRx_Er   : std_logic ; 
+  signal iRx_Ctl  : std_logic ; 
+  signal iCrs     : std_logic ; 
+  signal iCol     : std_logic ; 
     
-  signal ModelID       : AlertLogIDType ;
+  signal ModelID  : AlertLogIDType ;
 
-  signal DataFifo  : osvvm.ScoreboardPkg_slv.ScoreboardIDType ;
-  signal MetaFifo  : osvvm.ScoreboardPkg_int.ScoreboardIDType ;
+  signal DataFifo : osvvm.ScoreboardPkg_slv.ScoreboardIDType ;
+  signal MetaFifo : osvvm.ScoreboardPkg_int.ScoreboardIDType ;
 
   signal PacketReceiveCount      : integer := 0 ;
 
@@ -118,15 +124,31 @@ begin
 
 
 --  ------------------------------------------------------------
---  Osvvm.TbUtilPkg.CreateClock ( 
+--  ClkProc : process
 --  ------------------------------------------------------------
---    Clk        => xMii.RxClk, 
---    Period     => tperiod_xClk 
---  )  ; 
+--  begin
+--    wait for 0 ns ;  -- calc init value on tperiod_xClk
+--    loop 
+--      RefGtxClk <= not RefGtxClk after tperiod_xClk ; 
+--      wait on RefGtxClk ; 
+--    end loop ; 
+--  end process ; 
+--
+--  tperiod_xClk <= CalcPeriod(xMiiBps, xMiiInterface) ; 
+
   -- Internal timing reference - caution:  shifted by delta cycle
   iRxClk <= Rx_Clk when xMiiInterface /= RMII else
 --!!TODO resolve source of RMII Clk
             Rx_Clk ; -- Source of RMII
+  -- Since iRxClk is delayed, all input signals must be delayed 
+  -- or RTL signals may not be sampled correctly.
+  iRxD     <= RxD   ; 
+  iRx_Dv   <= Rx_Dv ;
+  iRx_Er   <= Rx_Er ;
+  iRx_Ctl  <= Rx_Ctl;
+  iCrs     <= Crs   ;
+  iCol     <= Col   ;
+
 
   ------------------------------------------------------------
   TransactionDispatcher : process
@@ -232,10 +254,10 @@ begin
         oEr           => oEr,
         Tpd           => Tpd,
         xMiiInterface => xMiiInterface,
-        iData         => RxD,  
-        iEnDv         => Rx_Dv,
-        iEr           => Rx_Er,
-        iCtl          => Rx_Ctl
+        iData         => iRxD,  
+        iEnDv         => iRx_Dv,
+        iEr           => iRx_Er,
+        iCtl          => iRx_Ctl
       ) ;
     end procedure GetByte ;
 

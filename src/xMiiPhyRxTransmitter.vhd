@@ -90,8 +90,9 @@ entity xMiiPhyRxTransmitter is
 end entity xMiiPhyRxTransmitter ;
 architecture behavioral of xMiiPhyRxTransmitter is
 
-  constant tperiod_xClk : time := CalcPeriod(xMiiBps, xMiiInterface) ; 
-  signal iRxClk, RefRxClk : std_logic ; 
+  signal tperiod_xClk  : time := CalcPeriod(BPS_1G, GMII) ; 
+  signal RefRxClk      : std_logic := '0' ; 
+  signal iRxClk        : std_logic := '0' ; 
 
   signal ModelID       : AlertLogIDType ;
 
@@ -120,13 +121,20 @@ begin
   end process Initialize ;
 
   ------------------------------------------------------------
-  Osvvm.TbUtilPkg.CreateClock ( 
+  ClkProc : process
   ------------------------------------------------------------
-    Clk        => RefRxClk, 
-    Period     => tperiod_xClk 
-  )  ; 
+  begin
+    wait for 0 ns ;  -- calc init value on tperiod_xClk
+    loop 
+      RefRxClk <= not RefRxClk after tperiod_xClk ; 
+      wait on RefRxClk ; 
+    end loop ; 
+  end process ; 
+
+  tperiod_xClk <= CalcPeriod(xMiiBps, xMiiInterface) ; 
   
-  Rx_Clk <= RefRxClk ; 
+  -- for GMII and RGMII, clock is source synchronous, VC needs to delay clk to emulate delay in board traces.
+  Rx_Clk <= RefRxClk after tpd when xMiiInterface = GMII or xMiiInterface = RGMII else RefRxClk ; 
   
   iRxClk <= RefRxClk when xMiiInterface /= RMII 
 --!!TODO resolve source of RMII Clk

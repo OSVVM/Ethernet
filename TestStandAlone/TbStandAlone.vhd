@@ -94,6 +94,12 @@ architecture TestHarness of TbStandAlone is
   signal MacTxRec     : EthernetRecType ;  -- output from MAC
 
 begin
+
+  process 
+  begin
+    log("Generic settings.  MII_INTERFACE = " & to_string(MII_INTERFACE) & ".   MII_BPS = " & to_string(MII_BPS)) ; 
+    wait ; 
+  end process ; 
  
   xMiiPhy_1 : xMiiPhy 
     generic map (
