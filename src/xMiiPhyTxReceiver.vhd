@@ -96,6 +96,7 @@ architecture behavioral of xMiiPhyTxReceiver is
   signal iTx_En       : std_logic ; 
   signal iTx_Er       : std_logic ; 
   signal iTx_Ctl      : std_logic ; 
+  signal Enable       : std_logic ; 
 
   signal ModelID      : AlertLogIDType ;
 
@@ -231,6 +232,10 @@ begin
     end loop DispatchLoop ;
   end process TransactionDispatcher ;
   
+  Enable <= xMiiEnable (
+              xMiiInterface => xMiiInterface, 
+              iEnDv         => iTx_En, 
+              iCtl          => iTx_Ctl ) ;
   
   ------------------------------------------------------------
   PhyTxHandler : process
@@ -264,10 +269,7 @@ begin
     wait for 0 ns ; -- Allow DataFifo to initialize 
 
     GetLoop : loop
-      loop
-        GetByte(oData, oEn, oEr) ; 
-        exit when oEn ;
-      end loop ; 
+      wait on iTxClk until Enable = '1' and rising_edge(iTxClk) ;
     
       -- Find SFD
       while oData /= X"AB" loop 
@@ -276,6 +278,10 @@ begin
           Alert(ModelId, "Incomplete Preamble and SFD") ;
           next GetLoop ;
         end if ; 
+        Log(ModelId,
+          "Received Byte " & to_hstring (oData) & "  oEn = " & to_string(oEn),
+          DEBUG
+        ) ;
       end loop ; 
       
       -- Get A Packet of Data

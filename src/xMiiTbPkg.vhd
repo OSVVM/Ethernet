@@ -97,6 +97,14 @@ package xMiiTbPkg is
   ) ; 
 
   ------------------------------------------------------------
+  function xMiiEnable (
+  ------------------------------------------------------------
+    constant xMiiInterface : in  xMiiInterfaceType ;
+    constant iEnDv         : in  std_logic ; 
+    constant iCtl          : in  std_logic  
+  ) return std_logic ;
+
+  ------------------------------------------------------------
   procedure GetByte (
   ------------------------------------------------------------
     signal   Clk           : in  std_logic ; 
@@ -203,6 +211,22 @@ package body xMiiTbPkg is
         wait until Rising_Edge(Clk) ; 
     end case ; 
   end procedure SendByte ; 
+
+  ------------------------------------------------------------
+  function xMiiEnable (
+  ------------------------------------------------------------
+    constant xMiiInterface : in  xMiiInterfaceType ;
+    constant iEnDv         : in  std_logic ; 
+    constant iCtl          : in  std_logic  
+  ) return std_logic is
+  begin
+    case xMiiInterface is
+      when RGMII =>
+        return iCtl ; 
+      when others =>
+        return iEnDv ; 
+    end case ; 
+  end function xMiiEnable ; 
 
   ------------------------------------------------------------
   procedure GetByte (

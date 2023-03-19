@@ -98,7 +98,8 @@ architecture behavioral of xMiiMacReceiver is
   signal iRx_Ctl  : std_logic ; 
   signal iCrs     : std_logic ; 
   signal iCol     : std_logic ; 
-    
+  signal Enable       : std_logic ; 
+
   signal ModelID  : AlertLogIDType ;
 
   signal DataFifo : osvvm.ScoreboardPkg_slv.ScoreboardIDType ;
@@ -230,8 +231,12 @@ begin
       wait for 0 ns ;
     end loop DispatchLoop ;
   end process TransactionDispatcher ;
-  
-  
+
+  Enable <= xMiiEnable (
+              xMiiInterface => xMiiInterface, 
+              iEnDv         => iRx_Dv, 
+              iCtl          => iRx_Ctl ) ;
+
   ------------------------------------------------------------
   MacRxHandler : process
   --  MAC receives data on receiver Interface
@@ -266,13 +271,8 @@ begin
 
     GetLoop : loop
     
-      -- Find DV = 1 at Rising_Edge(Clk)
---      wait on Clk until Rx_Dv = '1' and Rising_Edge(iRxClk) ; 
-      loop
-        GetByte(oData, oDv, oEr) ; 
-        exit when oDv ;
-      end loop ; 
-      
+      wait on iRxClk until Enable = '1' and rising_edge(iRxClk) ;
+
       -- Find SFD
       while oData /= X"AB" loop 
         GetByte(oData, oDv, oEr) ;
