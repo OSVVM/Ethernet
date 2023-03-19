@@ -240,6 +240,13 @@ begin
     end procedure SendByte ; 
 
   begin
+    RxD       <= (others => '0') ;
+    Rx_Dv     <= '0' ;
+    Rx_Er     <= '0' ;
+    Rx_Ctl    <= '0' ;
+    Crs       <= '0' ;
+    Col       <= '0' ;
+    
     wait for 0 ns ; -- Allow DataFifo and MetaFifo to initialize 
 
     SendLoop : loop
