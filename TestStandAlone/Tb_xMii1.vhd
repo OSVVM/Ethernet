@@ -55,6 +55,7 @@ begin
     SetTestName("Tb_xMii1") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
+    -- SetLogEnable(DEBUG, TRUE) ;    -- Enable DEBUG logs
 
     -- Wait for testbench initialization 
     wait for 0 ns ;  wait for 0 ns ;
@@ -66,8 +67,8 @@ begin
     ClearAlerts ;
 
     -- Wait for test to finish
-    WaitForBarrier(TestDone, 5 ms) ;
-    AlertIf(now >= 5 ms, "Test finished due to timeout") ;
+    WaitForBarrier(TestDone, 20 ms) ;
+    AlertIf(now >= 20 ms, "Test finished due to timeout") ;
     AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
     
     TranscriptClose ; 
@@ -84,25 +85,27 @@ begin
   ------------------------------------------------------------
     variable CoverID : CoverageIdType ; 
   begin
-    WaitForClock(MacTxRec, 2) ; 
-    
--- SendBurstIncrement and CheckBurstIncrement    
-    log("SendBurstIncrement 16 word burst") ;
-    PushBurstIncrement(MacTxRec.BurstFifo, X"00", 1024) ; 
-    SendBurst(MacTxRec, 16) ; 
-    
-    SendBurst(MacTxRec, 16) ; 
+    for i in 3 to 6 loop 
+      WaitForClock(MacTxRec, i) ; 
+      
+  -- SendBurstIncrement and CheckBurstIncrement    
+      log("SendBurstIncrement 16 word burst") ;
+      PushBurstIncrement(MacTxRec.BurstFifo, X"00", 1024) ; 
+      SendBurst(MacTxRec, 16) ; 
+      
+      SendBurst(MacTxRec, 16) ; 
 
-    SendBurst(MacTxRec, 256) ; 
+      SendBurst(MacTxRec, 256) ; 
 
-    SendBurst(MacTxRec, 32) ; 
-    
-    SendBurst(MacTxRec, 64) ; 
+      SendBurst(MacTxRec, 32) ; 
+      
+      SendBurst(MacTxRec, 64) ; 
 
-    SendBurst(MacTxRec, 128) ; 
+      SendBurst(MacTxRec, 128) ; 
 
-    SendBurst(MacTxRec, 256) ; 
-    SendBurst(MacTxRec, 256) ; 
+      SendBurst(MacTxRec, 256) ; 
+      SendBurst(MacTxRec, 256) ; 
+    end loop ; 
    
     -- Wait for outputs to propagate and signal TestDone
     WaitForClock(MacTxRec, 2) ;
@@ -160,27 +163,30 @@ begin
   ------------------------------------------------------------
     variable CoverID : CoverageIdType ; 
   begin
-    WaitForClock(PhyRxRec, 2) ; 
-    
--- SendBurstIncrement and CheckBurstIncrement    
-    log("SendBurstIncrement 16 word burst") ;
-    PushBurstIncrement(PhyRxRec.BurstFifo, X"80", 1024) ; 
-    SendBurst(PhyRxRec, 128) ; 
+  
+    for i in 3 to 6 loop 
+      WaitForClock(PhyRxRec, i) ; 
+      
+  -- SendBurstIncrement and CheckBurstIncrement    
+      log("SendBurstIncrement 16 word burst") ;
+      PushBurstIncrement(PhyRxRec.BurstFifo, X"80", 1024) ; 
+      SendBurst(PhyRxRec, 128) ; 
 
-    SendBurst(PhyRxRec, 128) ; 
+      SendBurst(PhyRxRec, 128) ; 
 
-    SendBurst(PhyRxRec, 16) ; 
-    
-    SendBurst(PhyRxRec, 16) ; 
+      SendBurst(PhyRxRec, 16) ; 
+      
+      SendBurst(PhyRxRec, 16) ; 
 
-    SendBurst(PhyRxRec, 32) ; 
-    
-    SendBurst(PhyRxRec, 64) ; 
+      SendBurst(PhyRxRec, 32) ; 
+      
+      SendBurst(PhyRxRec, 64) ; 
 
-    SendBurst(PhyRxRec, 128) ; 
+      SendBurst(PhyRxRec, 128) ; 
 
-    SendBurst(PhyRxRec, 256) ; 
-    SendBurst(PhyRxRec, 256) ; 
+      SendBurst(PhyRxRec, 256) ; 
+      SendBurst(PhyRxRec, 256) ; 
+    end loop ; 
    
     -- Wait for outputs to propagate and signal TestDone
     WaitForClock(PhyRxRec, 2) ;
