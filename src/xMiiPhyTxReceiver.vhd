@@ -272,7 +272,8 @@ begin
       wait on iTxClk until Enable = '1' and rising_edge(iTxClk) ;
     
       -- Find SFD
-      while oData /= X"AB" loop 
+--      while oData /= X"AB" loop 
+      loop 
         GetByte(oData, oEn, oEr) ;
         if oEn /= '1' then
           Alert(ModelId, "Incomplete Preamble and SFD") ;
@@ -282,6 +283,7 @@ begin
           "Received Byte " & to_hstring (oData) & "  oEn = " & to_string(oEn),
           DEBUG
         ) ;
+        exit when oData = X"AB" ;
       end loop ; 
       
       -- Get A Packet of Data

@@ -274,12 +274,14 @@ begin
       wait on iRxClk until Enable = '1' and rising_edge(iRxClk) ;
 
       -- Find SFD
-      while oData /= X"AB" loop 
+--      while oData /= X"AB" loop 
+      loop 
         GetByte(oData, oDv, oEr) ;
         if oDv /= '1' then
           Alert(ModelId, "Incomplete Preamble and SFD") ;
           next GetLoop ;
         end if ; 
+        exit when oData = X"AB" ;
       end loop ; 
       
       -- Get A Packet of Data
