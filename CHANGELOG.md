@@ -2,7 +2,11 @@
 
 | Revision  |  Release Summary | 
 ------------|----------- 
+| 2023.05   | Bug Fix:  Updated looping in receivers 
 | 2022.10   | Initial release
+
+## 2023.05  May 2022
+- Bug Fix:  updated receivers to use repeat until loop instead of while loop to avoid issues with using old value in first check of loop
 
 ## 2022.10 October 2022
 - New repository with 
