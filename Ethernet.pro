@@ -37,17 +37,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-library osvvm_ethernet
-ChangeWorkingDirectory src
-analyze xMiiTbPkg.vhd
-analyze xMiiComponentPkg.vhd
-
-analyze xMiiPhyRxTransmitter.vhd
-analyze xMiiPhyTxReceiver.vhd
-analyze xMiiPhy.vhd
-
-analyze xMiiMacTransmitter.vhd
-analyze xMiiMacReceiver.vhd
-analyze xMiiMac.vhd
-
-analyze xMiiContext.vhd
+if {$::osvvm::ToolNameVersion ne "XSIM-2023.2"}  {
+  include src
+} else {
+  include src_xilinx
+}
