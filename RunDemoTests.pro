@@ -37,6 +37,12 @@
 #  limitations under the License.
 #  
 
+if {$::osvvm::ToolNameVersion ne "XSIM-2023.2"}  {
+  include ./TestStandAlone/build_one.pro
+} else {
+  include ./TestStandAlone_xilinx/build_one.pro
+}
+
 TestSuite Ethernet
 library Ethernet_TestStandAlone
 
