@@ -1,4 +1,4 @@
-#  File Name:         RunAllTests.pro
+#  File Name:         testbench.pro
 #  Revision:          STANDARD VERSION
 #
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -7,7 +7,7 @@
 #
 #
 #  Description:
-#        Script to run all Axi Stream tests  
+#        Script to run one Axi Stream test  
 #
 #  Developed for:
 #        SynthWorks Design Inc.
@@ -37,27 +37,12 @@
 #  limitations under the License.
 #  
 
-if {$::osvvm::ToolNameVersion ne "XSIM-2023.2"}  {
-  include ./TestStandAlone/build_one.pro
-} else {
-  include ./TestStandAlone_xilinx/build_one.pro
-}
-
 TestSuite Ethernet
 library Ethernet_TestStandAlone
-
-ChangeWorkingDirectory TestStandAlone
 
 analyze OsvvmTestCommonPkg.vhd
 
 analyze TestCtrl_e.vhd
 analyze TbStandAlone.vhd
 
-RunTest Tb_xMii1.vhd [generic MII_INTERFACE RGMII] [generic MII_BPS BPS_1G]
-#RunTest Tb_xMii1.vhd [generic MII_INTERFACE MII]   [generic MII_BPS BPS_100M]
-
-#simulate Tb_xMii1 [generic MII_INTERFACE RGMII] [generic MII_BPS BPS_1G]
-simulate Tb_xMii1 [generic MII_INTERFACE MII]   [generic MII_BPS BPS_100M]
-#simulate Tb_xMii1 [generic MII_INTERFACE MII]   [generic MII_BPS BPS_10M]
-#simulate Tb_xMii1 [generic MII_INTERFACE RMII]  [generic MII_BPS BPS_100M]
-#simulate Tb_xMii1 [generic MII_INTERFACE RMII]  [generic MII_BPS BPS_10M]
+RunTest Tb_xMii1.vhd [generic MII_INTERFACE RMII]  [generic MII_BPS BPS_100M]
