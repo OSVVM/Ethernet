@@ -250,7 +250,7 @@ begin
     wait for 0 ns ; -- Allow DataFifo and MetaFifo to initialize 
 
     SendLoop : loop
-      if Empty(MetaFifo) then
+      if IsEmpty(MetaFifo) then
          WaitForToggle(TransmitRequestCount) ;
       end if ;
       FindRisingEdge(iRxClk) ; 
