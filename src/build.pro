@@ -39,7 +39,7 @@
 #
 
 library osvvm_ethernet
-analyze xMiiTbPkg.vhd
+analyze xMiiTbPkg.vhd [NoNullRangeWarning]
 analyze xMiiComponentPkg.vhd
 
 analyze xMiiPhyRxTransmitter.vhd
