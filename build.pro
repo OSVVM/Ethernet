@@ -1,4 +1,4 @@
-#  File Name:         AxiStream.pro
+#  File Name:         build.pro
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com
