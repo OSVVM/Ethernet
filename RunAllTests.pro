@@ -37,8 +37,4 @@
 #  limitations under the License.
 #  
 
-if {$::osvvm::ToolNameVersion ne "XSIM-2023.2"}  {
-  include ./TestStandAlone
-} else {
-  include ./TestStandAlone_xilinx
-}
+include ./TestStandAlone

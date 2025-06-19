@@ -37,8 +37,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-if {$::osvvm::ToolNameVersion ne "XSIM-2023.2"}  {
-  include src
-} else {
-  include src_xilinx
-}
+include src
