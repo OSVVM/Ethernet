@@ -40,7 +40,7 @@
 TestSuite Ethernet
 library Ethernet_TestStandAlone
 
-analyze OsvvmTestCommonPkg.vhd
+analyze [CreateTestCaseCommonPkg OsvvmTestCommonPkg ../ValidatedResults]
 
 analyze TestCtrl_e.vhd
 analyze TbStandAlone.vhd
