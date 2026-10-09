@@ -62,21 +62,21 @@ entity xMiiMacTransmitter is
   generic (
     MODEL_ID_NAME  : string := "" ;
     DEFAULT_DELAY  : time := 1 ns ;
-    tpd            : time := DEFAULT_DELAY 
+    tpd            : time := DEFAULT_DELAY
   ) ;
   port (
     -- Configured by MDIO - it can change during operation based on PHY negotiation
     xMiiInterface : in xMiiInterfaceType := GMII ;
     xMiiBps       : in xMiiBpsType       := BPS_1G ;
-    
+
     -- xMiiMacReceiver Transmitter Functional Interface
     Gtx_Clk   : out std_logic ;  -- out for GMII/RGMII, in for MII
     Tx_Clk    : in  std_logic ;  -- out for GMII/RGMII, in for MII
-    TxD       : out std_logic_vector(0 to 7) ; 
-    Tx_En     : out std_logic ; 
-    Tx_Er     : out std_logic ; 
-    Tx_Ctl    : out std_logic ; 
-    
+    TxD       : out std_logic_vector(0 to 7) ;
+    Tx_En     : out std_logic ;
+    Tx_Er     : out std_logic ;
+    Tx_Ctl    : out std_logic ;
+
     -- Testbench Transaction Interface
     TransRec   : inout StreamRecType   -- Information outbound of this VC
   ) ;
@@ -84,16 +84,16 @@ entity xMiiMacTransmitter is
   -- Use MODEL_ID_NAME Generic if set, otherwise,
   -- use model instance label (preferred if set as entityname_1)
   constant MODEL_INSTANCE_NAME : string :=
-    IfElse(MODEL_ID_NAME'length > 0, MODEL_ID_NAME, 
+    IfElse(MODEL_ID_NAME'length > 0, MODEL_ID_NAME,
       to_lower(PathTail(xMiiMacTransmitter'PATH_NAME))) ;
 
 end entity xMiiMacTransmitter ;
 architecture behavioral of xMiiMacTransmitter is
 
-  signal tperiod_xClk : time := CalcPeriod(BPS_1G, GMII) ; 
-  signal RefGtxClk    : std_logic := '0' ; 
-  signal iTxClk       : std_logic := '0' ; 
-    
+  signal tperiod_xClk : time := CalcPeriod(BPS_1G, GMII) ;
+  signal RefGtxClk    : std_logic := '0' ;
+  signal iTxClk       : std_logic := '0' ;
+
   signal ModelID      : AlertLogIDType ;
 
   signal DataFifo     : osvvm.ScoreboardPkg_slv.ScoreboardIDType ;
@@ -115,8 +115,8 @@ begin
     -- Alerts
     ID           := NewID(MODEL_INSTANCE_NAME) ;
     ModelID      <= ID ;
-    DataFifo     <= NewID("DataFifo",  ID, ReportMode => DISABLED, Search => PRIVATE_NAME) ; 
-    MetaFifo     <= NewID("MetaFifo",  ID, ReportMode => DISABLED, Search => PRIVATE_NAME) ; 
+    DataFifo     <= NewID("DataFifo",  ID, ReportMode => DISABLED, Search => PRIVATE_NAME) ;
+    MetaFifo     <= NewID("MetaFifo",  ID, ReportMode => DISABLED, Search => PRIVATE_NAME) ;
     wait ;
   end process Initialize ;
 
@@ -125,22 +125,22 @@ begin
   ------------------------------------------------------------
   begin
     wait for 0 ns ;  -- calc init value on tperiod_xClk
-    loop 
-      RefGtxClk <= not RefGtxClk after tperiod_xClk / 2; 
-      wait on RefGtxClk ; 
-    end loop ; 
-  end process ; 
+    loop
+      RefGtxClk <= not RefGtxClk after tperiod_xClk / 2;
+      wait on RefGtxClk ;
+    end loop ;
+  end process ;
 
-  tperiod_xClk <= CalcPeriod(xMiiBps, xMiiInterface) ; 
-  
+  tperiod_xClk <= CalcPeriod(xMiiBps, xMiiInterface) ;
+
   -- Internal timing reference - caution:  shifted by delta cycle
-  iTxClk <= RefGtxClk when xMiiInterface = GMII or xMiiInterface = RGMII 
+  iTxClk <= RefGtxClk when xMiiInterface = GMII or xMiiInterface = RGMII
             else Tx_Clk when xMiiInterface = MII else
 --!!TODO resolve source of RMII Clk
             Tx_Clk ; -- Source of RMII
-  
+
   -- source synchronous clock delay.  Typically done by board traces.
-  Gtx_Clk <= RefGtxClk after tpd ; 
+  Gtx_Clk <= RefGtxClk after tpd ;
 
 
   ------------------------------------------------------------
@@ -150,8 +150,8 @@ begin
   begin
     wait for 0 ns ;  -- Wait for ModelId
     TransRec.BurstFifo <= NewID("BurstFifo", ModelId, ReportMode => DISABLED, Search => PRIVATE_NAME) ;
-    
-    DispatchLoop : loop 
+
+    DispatchLoop : loop
       WaitForTransaction(
          Clk      => iTxClk,
          Rdy      => TransRec.Rdy,
@@ -178,13 +178,13 @@ begin
         when SEND_BURST | SEND_BURST_ASYNC =>
           NumberTransfers := TransRec.IntToModel ;
           Push(MetaFifo, NumberTransfers) ;
-          Increment(TransmitRequestCount) ; 
+          Increment(TransmitRequestCount) ;
 -- Any reason not to just use the BurstFifo directly?
--- Limits BurstFifo editing capability when ASYNC and 
+-- Limits BurstFifo editing capability when ASYNC and
           for i in 1 to NumberTransfers loop
             Push(DataFifo, Pop(TransRec.BurstFifo)) ;
-          end loop ; 
-          
+          end loop ;
+
           wait for 0 ns ;
           if IsBlocking(TransRec.Operation) then
             wait until TransmitRequestCount = TransmitDoneCount ;
@@ -195,11 +195,11 @@ begin
           ) ;
 
         when SET_MODEL_OPTIONS | GET_MODEL_OPTIONS =>
-          Alert(ModelId, "Configuration done via MDIO Interface." & 
+          Alert(ModelId, "Configuration done via MDIO Interface." &
                          "  Transaction # " & to_string(TransRec.Rdy), FAILURE) ;
 
         when MULTIPLE_DRIVER_DETECT =>
-          Alert(ModelId, "Multiple Drivers on Transaction Record." & 
+          Alert(ModelId, "Multiple Drivers on Transaction Record." &
                          "  Transaction # " & to_string(TransRec.Rdy), FAILURE) ;
 
         -- The End -- Done
@@ -220,60 +220,60 @@ begin
   ------------------------------------------------------------
     variable PreambleLength : integer := 7 ; -- requirement to send 7
     variable PacketLength   : integer ;
-    
+
     ------------------------------------------------------------
     procedure SendByte (
-      iData : std_logic_vector(0 to 7);  
-      iEn   : std_logic := '1'; 
-      iEr   : std_logic := '0' 
+      iData : std_logic_vector(0 to 7);
+      iEn   : std_logic := '1';
+      iEr   : std_logic := '0'
     ) is
     ------------------------------------------------------------
     begin
       SendByte(
         Clk           => iTxClk,
-        iData         => iData, 
+        iData         => iData,
         iEnDv         => iEn,
         iEr           => iEr,
-        Tpd           => tpd, 
+        Tpd           => tpd,
         xMiiInterface => xMiiInterface,
         oData         => TxD,
         oEnDv         => Tx_En,
         oEr           => Tx_Er,
         oCtl          => Tx_Ctl
-      ) ; 
-    end procedure SendByte ; 
+      ) ;
+    end procedure SendByte ;
 
   begin
-  
+
     TxD       <= (others => '0') ;
     Tx_En     <= '0' ;
     Tx_Er     <= '0' ;
     Tx_Ctl    <= '0' ;
 
-    wait for 0 ns ; -- Allow DataFifo and MetaFifo to initialize 
+    wait for 0 ns ; -- Allow DataFifo and MetaFifo to initialize
 
     SendLoop : loop
       if IsEmpty(MetaFifo) then
          WaitForToggle(TransmitRequestCount) ;
       end if ;
       FindRisingEdge(iTxClk) ;
-      PacketLength := Pop(MetaFifo) ; 
+      PacketLength := Pop(MetaFifo) ;
 
-      -- Send Preamble Bytes 
+      -- Send Preamble Bytes
       for i in 1 to PreambleLength loop
-        SendByte(X"AA") ; 
+        SendByte(ETHERNET_PREAMBLE) ;
       end loop ;
 
       -- Send SFD
-      SendByte(X"AB") ; 
+      SendByte(ETHERNET_SFD) ;
 
-      for i in 1 to PacketLength loop  
-        SendByte(Pop(DataFifo)) ; 
-      end loop ; 
+      for i in 1 to PacketLength loop
+        SendByte(Pop(DataFifo)) ;
+      end loop ;
 
       -- Send Inter-frame gap
-      for i in 1 to NumGapLength loop 
-        SendByte(X"0F", '0', '0') ; 
+      for i in 1 to NumGapLength loop
+        SendByte(X"0F", '0', '0') ;
       end loop ;
 
       -- Signal completion
@@ -281,5 +281,5 @@ begin
       wait for 0 ns ;
     end loop SendLoop ;
   end process MacTxHandler ;
-    
+
 end architecture behavioral ;

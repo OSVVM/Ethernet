@@ -62,21 +62,21 @@ entity xMiiPhyTxReceiver is
   generic (
     MODEL_ID_NAME  : string := "" ;
     DEFAULT_DELAY  : time := 1 ns ;
-    tpd            : time := DEFAULT_DELAY 
+    tpd            : time := DEFAULT_DELAY
   ) ;
   port (
     -- Configured by MDIO - it can change during operation based on PHY negotiation
     xMiiInterface : in xMiiInterfaceType := GMII ;
     xMiiBps       : in xMiiBpsType       := BPS_1G ;
-    
+
     -- xMiiPhyTxReceiver Transmitter Functional Interface
     GTx_Clk   : in  std_logic ;  -- GMII, RGMII
     Tx_Clk    : out std_logic ;  -- MII
-    TxD       : in  std_logic_vector(0 to 7) ; 
-    Tx_En     : in  std_logic ; 
-    Tx_Er     : in  std_logic ; 
-    Tx_Ctl    : in  std_logic ; 
-    
+    TxD       : in  std_logic_vector(0 to 7) ;
+    Tx_En     : in  std_logic ;
+    Tx_Er     : in  std_logic ;
+    Tx_Ctl    : in  std_logic ;
+
     -- Testbench Transaction Interface
     TransRec  : inout StreamRecType    -- Information inbound to this VC
   ) ;
@@ -84,20 +84,20 @@ entity xMiiPhyTxReceiver is
   -- Use MODEL_ID_NAME Generic if set, otherwise,
   -- use model instance label (preferred if set as entityname_1)
   constant MODEL_INSTANCE_NAME : string :=
-    IfElse(MODEL_ID_NAME'length > 0, MODEL_ID_NAME, 
+    IfElse(MODEL_ID_NAME'length > 0, MODEL_ID_NAME,
       to_lower(PathTail(xMiiPhyTxReceiver'PATH_NAME))) ;
 
 end entity xMiiPhyTxReceiver ;
 architecture behavioral of xMiiPhyTxReceiver is
 
-  signal tperiod_xClk : time := CalcPeriod(BPS_1G, GMII) ; 
-  signal RefTxClk     : std_logic := '0' ; 
-  signal iTxClk       : std_logic := '0' ; 
-  signal iTxD         : std_logic_vector(0 to 7) ; 
-  signal iTx_En       : std_logic ; 
-  signal iTx_Er       : std_logic ; 
-  signal iTx_Ctl      : std_logic ; 
-  signal Enable       : std_logic ; 
+  signal tperiod_xClk : time := CalcPeriod(BPS_1G, GMII) ;
+  signal RefTxClk     : std_logic := '0' ;
+  signal iTxClk       : std_logic := '0' ;
+  signal iTxD         : std_logic_vector(0 to 7) ;
+  signal iTx_En       : std_logic ;
+  signal iTx_Er       : std_logic ;
+  signal iTx_Ctl      : std_logic ;
+  signal Enable       : std_logic ;
 
   signal ModelID      : AlertLogIDType ;
 
@@ -117,8 +117,8 @@ begin
     -- Alerts
     ID           := NewID(MODEL_INSTANCE_NAME) ;
     ModelID      <= ID ;
-    DataFifo     <= NewID("DataFifo",  ID, ReportMode => DISABLED, Search => PRIVATE_NAME) ; 
-    MetaFifo     <= NewID("MetaFifo",  ID, ReportMode => DISABLED, Search => PRIVATE_NAME) ; 
+    DataFifo     <= NewID("DataFifo",  ID, ReportMode => DISABLED, Search => PRIVATE_NAME) ;
+    MetaFifo     <= NewID("MetaFifo",  ID, ReportMode => DISABLED, Search => PRIVATE_NAME) ;
     wait ;
   end process Initialize ;
 
@@ -128,23 +128,23 @@ begin
   ------------------------------------------------------------
   begin
     wait for 0 ns ;  -- calc init value on tperiod_xClk
-    loop 
-      RefTxClk <= not RefTxClk after tperiod_xClk / 2; 
-      wait on RefTxClk ; 
-    end loop ; 
-  end process ; 
+    loop
+      RefTxClk <= not RefTxClk after tperiod_xClk / 2;
+      wait on RefTxClk ;
+    end loop ;
+  end process ;
 
-  tperiod_xClk <= CalcPeriod(xMiiBps, xMiiInterface) ; 
-  
+  tperiod_xClk <= CalcPeriod(xMiiBps, xMiiInterface) ;
+
   Tx_Clk <= RefTxClk ;
 
   -- Internal timing reference - caution:  shifted by delta cycle
-  iTxClk <= GTx_Clk when xMiiInterface = GMII or xMiiInterface = RGMII 
+  iTxClk <= GTx_Clk when xMiiInterface = GMII or xMiiInterface = RGMII
             else RefTxClk when xMiiInterface = MII else
 --!!TODO resolve source of RMII Clk
             RefTxClk ; -- Source of RMII
 
-  -- Since iTxClk is delayed, all input signals must be delayed 
+  -- Since iTxClk is delayed, all input signals must be delayed
   -- or RTL signals may not be sampled correctly.
   iTxD     <= TxD   ;
   iTx_En   <= Tx_En ;
@@ -158,10 +158,10 @@ begin
     variable NumberTransfers : integer ;
     variable PacketTransferCount : integer := 0 ;
   begin
-    wait for 0 ns ; 
+    wait for 0 ns ;
     TransRec.BurstFifo <= NewID("BurstFifo", ModelId, ReportMode => DISABLED, Search => PRIVATE_NAME) ;
-    
-    DispatchLoop : loop 
+
+    DispatchLoop : loop
       WaitForTransaction(
          Clk      => iTxClk,
          Rdy      => TransRec.Rdy,
@@ -198,29 +198,29 @@ begin
               -- Wait for data
               WaitForToggle(PacketReceiveCount) ;
             end if ;
-            NumberTransfers := Pop(MetaFifo) ; 
-            TransRec.IntFromModel <= NumberTransfers ; 
--- Do we need a separate DataFifo or 
+            NumberTransfers := Pop(MetaFifo) ;
+            TransRec.IntFromModel <= NumberTransfers ;
+-- Do we need a separate DataFifo or
 -- is it ok to put values directly into the BurstFifo?
--- For now, could assign DataFifo to TransRec.BurstFifo 
+-- For now, could assign DataFifo to TransRec.BurstFifo
             for i in 1 to NumberTransfers loop
               Push(TransRec.BurstFifo, Pop(DataFifo)) ;
-            end loop ; 
-            PacketTransferCount := Increment(PacketTransferCount) ; 
-            
+            end loop ;
+            PacketTransferCount := Increment(PacketTransferCount) ;
+
             Log(ModelId,
               "Received Packet# " & to_string (PacketTransferCount),
               INFO, TransRec.BoolToModel or IsLogEnabled(ModelId, PASSED)
             ) ;
             wait for 0 ns ;
           end if ;
-         
+
         when SET_MODEL_OPTIONS | GET_MODEL_OPTIONS =>
-          Alert(ModelId, "Configuration done via MDIO Interface." & 
+          Alert(ModelId, "Configuration done via MDIO Interface." &
                          "  Transaction # " & to_string(TransRec.Rdy), FAILURE) ;
 
         when MULTIPLE_DRIVER_DETECT =>
-          Alert(ModelId, "Multiple Drivers on Transaction Record." & 
+          Alert(ModelId, "Multiple Drivers on Transaction Record." &
                          "  Transaction # " & to_string(TransRec.Rdy), FAILURE) ;
 
         -- The End -- Done
@@ -232,90 +232,90 @@ begin
       wait for 0 ns ;
     end loop DispatchLoop ;
   end process TransactionDispatcher ;
-  
+
   Enable <= xMiiEnable (
-              xMiiInterface => xMiiInterface, 
-              iEnDv         => iTx_En, 
+              xMiiInterface => xMiiInterface,
+              iEnDv         => iTx_En,
               iCtl          => iTx_Ctl ) ;
-  
+
   ------------------------------------------------------------
   PhyTxHandler : process
   --  Phy receives data on Phy Transmitter Interface
   ------------------------------------------------------------
-    variable PacketLength : integer ; 
-    variable ErrorLoc : integer ; 
+    variable PacketLength : integer ;
+    variable ErrorLoc : integer ;
     variable oData : std_logic_vector(0 to 7) ;
-    variable oEn, oEr : std_logic ; 
-    
+    variable oEn, oEr : std_logic ;
+
     procedure GetByte (
-      variable oData         : out std_logic_vector(0 to 7);  
-      variable oEn           : out std_logic ; 
-      variable oEr           : out std_logic 
-    ) is 
+      variable oData         : out std_logic_vector(0 to 7);
+      variable oEn           : out std_logic ;
+      variable oEr           : out std_logic
+    ) is
     begin
       GetByte (
         Clk           => iTxClk,
-        oData         => oData,  
+        oData         => oData,
         oEnDv         => oEn,
         oEr           => oEr,
         Tpd           => Tpd,
         xMiiInterface => xMiiInterface,
-        iData         => iTxD,  
+        iData         => iTxD,
         iEnDv         => iTx_En,
         iEr           => iTx_Er,
         iCtl          => iTx_Ctl
       ) ;
     end procedure GetByte ;
   begin
-    wait for 0 ns ; -- Allow DataFifo to initialize 
+    wait for 0 ns ; -- Allow DataFifo to initialize
 
     GetLoop : loop
       wait on iTxClk until Enable = '1' and rising_edge(iTxClk) ;
-    
+
       -- Find SFD
---      while oData /= X"AB" loop 
-      loop 
+--      while oData /= ETHERNET_SFD loop
+      loop
         GetByte(oData, oEn, oEr) ;
         if oEn /= '1' then
           Alert(ModelId, "Incomplete Preamble and SFD") ;
           next GetLoop ;
-        end if ; 
+        end if ;
         Log(ModelId,
           "Received Byte " & to_hstring (oData) & "  oEn = " & to_string(oEn),
           DEBUG
         ) ;
-        exit when oData = X"AB" ;
-      end loop ; 
-      
+        exit when oData = ETHERNET_SFD ;
+      end loop ;
+
       -- Get A Packet of Data
-      ErrorLoc     := 0 ; 
+      ErrorLoc     := 0 ;
       PacketLength := MaxPacketLength ;
-      for i in 1 to MaxPacketLength loop 
+      for i in 1 to MaxPacketLength loop
         GetByte(oData, oEn, oEr) ;
-        if oEr = '1' then 
-          ErrorLoc := i ; 
-        end if ; 
-        if oEn = '1' then 
-          Push(DataFifo, oData) ; 
+        if oEr = '1' then
+          ErrorLoc := i ;
+        end if ;
+        if oEn = '1' then
+          Push(DataFifo, oData) ;
         else
-          PacketLength := i - 1 ; 
+          PacketLength := i - 1 ;
           exit ;
         end if ;
       end loop ;
       Push(MetaFifo, PacketLength) ;
       Increment(PacketReceiveCount) ;
-      
+
       if PacketLength = MaxPacketLength then
         GetByte(oData, oEn, oEr) ;
-        if oEn = '1' then 
-          Alert(ModelId, "PacketLength = " & to_string(PacketLength) & 
-              ".  Packet truncated due to exceeding maximum length = " & 
-              to_string(MaxPacketLength)) ; 
+        if oEn = '1' then
+          Alert(ModelId, "PacketLength = " & to_string(PacketLength) &
+              ".  Packet truncated due to exceeding maximum length = " &
+              to_string(MaxPacketLength)) ;
           while oEn = '1' loop
             GetByte(oData, oEn, oEr) ;
           end loop ;
-        end if ; 
-      end if ; 
+        end if ;
+      end if ;
       wait for 0 ns ;
     end loop GetLoop ;
   end process PhyTxHandler ;
